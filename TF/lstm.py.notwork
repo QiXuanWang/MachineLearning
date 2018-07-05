@@ -1,0 +1,23 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function
+
+import tensorflow as tf
+from tensorflow.python.framework import dtypes
+
+
+def lstm_model():
+    def _lstm_model(X, y):
+        lstm_cells = [tf.contrib.rnn.BasicLSTMCell(num_units=5)]
+        stacked_lstm = tf.contrib.rnn.MultiRNNCell(lstm_cells, state_is_tuple=True)
+        x_ = tf.unstack(X, axis=1, num=3)
+        optimizer = tf.train.AdagradOptimizer(learning_rate=0.1)
+        output, layers = tf.contrib.rnn.static_rnn(stacked_lstm, x_, dtype=dtypes.float32)
+        output = output[-1]
+        predictions, loss = tf.contrib.learn.models.linear_regression(output, y)
+        train_op = tf.contrib.layers.optimize_loss(
+            loss, tf.contrib.framework.get_global_step(), optimizer=optimizer,
+            learning_rate=0.1)
+
+        return predictions, loss, train_op
+    # need to return a functor
+    return _lstm_model
